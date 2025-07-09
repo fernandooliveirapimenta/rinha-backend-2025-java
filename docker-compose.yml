@@ -11,7 +11,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - QUARKUS_MONGODB_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@documentdb:27017/admin
+      # - QUARKUS_MONGODB_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@documentdb:27017/admin
+      - QUARKUS_MONGODB_CONNECTION_STRING=mongodb://documentdb:27017/admin
       - JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75 -XX:+UseSerialGC
 
     depends_on:
@@ -22,10 +23,10 @@ services:
           cpus: "0.5"
           memory: "200MB"
   
-  # api02:
-  #   <<: *api
-  #   ports:
-  #     - "8081:8080"
+  api02:
+    <<: *api
+    ports:
+      - "8081:8080"
 
   nginx:
     image: nginx:1.29.0
@@ -35,7 +36,7 @@ services:
      - "9999:9999"
     depends_on:
       - api01
-      # - api02
+      - api02
     deploy:
       resources:
         limits:
@@ -46,9 +47,6 @@ services:
     image: mongo:latest
     ports:
       - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - documentdb_data:/data/db
     deploy:
