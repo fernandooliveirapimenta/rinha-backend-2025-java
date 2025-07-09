@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  quarkus:
+    image: quarkus-documentdb-payments:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - QUARKUS_MONGODB_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@documentdb:27017/admin
+    depends_on:
+      - documentdb
+
+  documentdb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - documentdb_data:/data/db
+
+volumes:
+  documentdb_data:
