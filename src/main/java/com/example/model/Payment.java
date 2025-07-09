@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 public class Payment {
     private String correlationId;
+    
     private BigDecimal amount;
 
     public String getCorrelationId() {

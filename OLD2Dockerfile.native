@@ -1,0 +1,14 @@
+FROM registry.access.redhat.com/quarkus/mandrel-for-jdk-21-rhel8:23.1 AS builder
+        # Or a different GraalVM/Mandrel image for Java 21
+        # FROM ghcr.io/graalvm/jdk-21:latest AS builder 
+
+WORKDIR /build
+COPY . /build
+RUN mvn clean package -Pnative -Dquarkus.native.container-build=true
+
+FROM scratch
+# Or FROM registry.access.redhat.com/ubi8/ubi-minimal
+
+COPY --from=builder /build/target/quarkus-documentdb-payments-runner /application
+EXPOSE 8080
+CMD ["/application"]

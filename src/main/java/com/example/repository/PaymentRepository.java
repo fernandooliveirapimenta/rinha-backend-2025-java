@@ -7,6 +7,9 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
+import org.bson.types.Decimal128;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,7 +37,8 @@ public class PaymentRepository {
         for (Document doc : collection.find()) {
             Payment payment = new Payment();
             payment.setCorrelationId(doc.getString("correlationId"));
-            //payment.setAmount(doc.getDouble("amount"));
+            Decimal128 decimalValue = doc.get("amount", Decimal128.class);
+            payment.setAmount(decimalValue != null ? decimalValue.bigDecimalValue() : BigDecimal.ZERO);
             payments.add(payment);
         }
         return payments;

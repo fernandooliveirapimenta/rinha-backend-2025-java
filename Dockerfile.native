@@ -1,0 +1,36 @@
+## Stage 1: Build native executable
+FROM quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21 AS build
+
+
+WORKDIR /project
+USER root
+RUN microdnf install findutils # Necessário para o build nativo
+
+COPY --chown=quarkus:quarkus mvnw .
+COPY --chown=quarkus:quarkus .mvn .mvn
+COPY --chown=quarkus:quarkus pom.xml .
+COPY --chown=quarkus:quarkus src src
+RUN chmod 755 mvnw && \
+    chmod -R 755 .mvn
+RUN ./mvnw package -Pnative -DskipTests
+
+## Stage 2: Create minimal runtime image
+FROM quay.io/quarkus/quarkus-micro-image:2.0
+WORKDIR /work/
+
+# Primeiro cria a estrutura de diretórios
+RUN mkdir -p /work && \
+    chown -R 1001:root /work && \
+    chmod -R 775 /work
+
+# Depois copia o executável
+COPY --from=build --chown=1001:root /project/target/*-runner /work/application
+
+# Aplica permissões apenas no arquivo copiado
+RUN chmod 775 /work/application && \
+    chmod -R "g+rwX" /work
+
+EXPOSE 8080
+USER 1001
+
+CMD ["./application", "-Dquarkus.http.host=0.0.0.0"]
