@@ -1,0 +1,27 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "quarkus-dev",
+            "type": "shell",
+            "command": "mvn compile quarkus:dev -Ddebug -Dquarkus.profile=local",
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "quarkus",
+                "pattern": [
+                    {
+                        "regexp": "\\bERROR\\b",
+                        "file": 1,
+                        "location": 2,
+                        "message": 3
+                    }
+                ],
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "Listening for transport dt_socket at address: 5005",
+                    "endsPattern": "Installed features:.*"
+                }
+            }
+        }
+    ]
+}
