@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "com.example.Main",
+            "projectName": "quarkus-documentdb-payments"
+        },
+        {
+            "type": "java",
             "name": "Debug (Launch & Attach)",
             "request": "attach",
             "hostName": "localhost",

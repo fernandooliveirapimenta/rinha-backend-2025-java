@@ -58,6 +58,20 @@
       <artifactId>rest-assured</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-vertx</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-smallrye-fault-tolerance</artifactId>
+    </dependency>
+   <dependency>
+      <groupId>io.smallrye.reactive</groupId>
+      <artifactId>smallrye-mutiny-vertx-web-client</artifactId>
+      <version>3.19.1</version>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

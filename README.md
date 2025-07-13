@@ -4,6 +4,12 @@ Este projeto é uma aplicação Java 21 utilizando Quarkus e DocumentDB para ger
 
 ## Estrutura do Projeto
 
+<dependency>
+  <groupId>io.vertx</groupId>
+  <artifactId>vertx-mutiny-web-client</artifactId>
+  <version>4.4.7</version> <!-- Use the latest compatible version -->
+</dependency>
+
 ```
 quarkus-documentdb-payments
 ├── src
