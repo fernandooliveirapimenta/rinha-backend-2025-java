@@ -10,13 +10,13 @@ import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.faulttolerance.*;
 import org.jboss.logging.Logger;
 
 import com.example.model.Payment;
 
 import java.time.Duration;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -33,36 +33,42 @@ public class PaymentProcessorHttpClient {
 
     private final AtomicBoolean primaryHealthy = new AtomicBoolean(true);
     private final AtomicBoolean fallbackHealthy = new AtomicBoolean(true);
-    private final AtomicLong primaryMinResponseTime = new AtomicLong(300); // default 300ms
-    private final AtomicLong fallbackMinResponseTime = new AtomicLong(300); // default 300ms
+    private final AtomicLong primaryMinResponseTime = new AtomicLong(3000); // default 300ms
+    private final AtomicLong fallbackMinResponseTime = new AtomicLong(3000); // default 300ms
 
-    private static final String PRIMARY_SERVICE_URL = "http://payment-processor-default:8080";
-    private static final String FALLBACK_SERVICE_URL = "http://payment-processor-fallback:8080";
+    @ConfigProperty(name = "payment-processor-default") 
+    String PRIMARY_SERVICE_URL;
+    @ConfigProperty(name = "payment-processor-fallback") 
+    String FALLBACK_SERVICE_URL;
     private static final String PAYMENTS_ENDPOINT = "/payments";
     private static final String HEALTH_ENDPOINT = "/payments/service-health";
 
     // Configurações
-    private static final int BASE_PAYMENT_TIMEOUT = 3; // 3 segundos
-    private static final long HEALTH_CHECK_INTERVAL = 5100; // 10 segundos
-    private static final double TIMEOUT_MULTIPLIER = 3.0; // Multiplicador do minResponseTime
+    private static final int BASE_PAYMENT_TIMEOUT = 10; // 10 segundos
+    private static final long HEALTH_CHECK_INTERVAL = 5100; // 5 segundos
+    private static final double TIMEOUT_MULTIPLIER = 8.0; // Multiplicador do minResponseTime
 
     @PostConstruct
     void initialize() {
         this.primaryClient = WebClient.create(vertx, 
             new WebClientOptions()
-                .setDefaultHost(PRIMARY_SERVICE_URL.replace("http://", "").split(":")[0])
-                .setDefaultPort(8080)
+                .setDefaultHost(extracted(PRIMARY_SERVICE_URL)[0])
+                .setDefaultPort(Integer.parseInt(extracted(PRIMARY_SERVICE_URL)[1]))
                 .setConnectTimeout(1000)
                 .setIdleTimeout(BASE_PAYMENT_TIMEOUT));
 
         this.fallbackClient = WebClient.create(vertx, 
             new WebClientOptions()
-                .setDefaultHost(FALLBACK_SERVICE_URL.replace("http://", "").split(":")[0])
-                .setDefaultPort(8080)
+                .setDefaultHost(extracted(FALLBACK_SERVICE_URL)[0])
+                .setDefaultPort(Integer.parseInt(extracted(FALLBACK_SERVICE_URL)[1]))   
                 .setConnectTimeout(1000)
                 .setIdleTimeout(BASE_PAYMENT_TIMEOUT));
 
         startHealthChecks();
+    }
+
+    private String[] extracted(String url) {
+        return url.replace("http://", "").split(":");
     }
 
     private void startHealthChecks() {
@@ -83,10 +89,9 @@ public class PaymentProcessorHttpClient {
                         JsonObject body = response.bodyAsJsonObject();
                         healthFlag.set(!body.getBoolean("failing", true));
                         long newMinTime = body.getLong("minResponseTime", 100L);
-                        minResponseTime.set(Math.max(newMinTime, 100L)); // Garante mínimo de 100ms
-                        LOG.debugf("Updated minResponseTime for %s: %dms", baseUrl, newMinTime);
+                        minResponseTime.set(Math.max(newMinTime, 300L)); // Garante mínimo de 300ms
+                        LOG.infof("Updated minResponseTime for %s: %dms", baseUrl, newMinTime);
                     } else {
-                        healthFlag.set(false);
                         LOG.warnf("Health check for %s returned status %d", 
                                  baseUrl, response.statusCode());
                     }
@@ -98,7 +103,6 @@ public class PaymentProcessorHttpClient {
             );
     }
 
-    @Retry(maxRetries = 1, delay = 100)
     @Fallback(fallbackMethod = "processPaymentWithFallback")
     public Uni<String> processPayment(Payment request) {
         if (!primaryHealthy.get()) {
@@ -120,7 +124,13 @@ public class PaymentProcessorHttpClient {
                 if (response.statusCode() == 200) {
                     return response.bodyAsJsonObject().getString("message");
                 } else {
-                    throw new RuntimeException("Failed to process payment with primary service");
+                    String errorDetails = String.format(
+                        "Payment failed - Status: %d, Body: %s",
+                        response.statusCode(),
+                        response.bodyAsString()
+                    );
+            
+                    throw new RuntimeException("Failed to process payment with primary service " + errorDetails);
                 }
             });
     }
@@ -143,10 +153,16 @@ public class PaymentProcessorHttpClient {
             .sendJson(request)
             .onItem().transform(response -> {
                 if (response.statusCode() == 200) {
+                    request.setType(2);
                     LOG.warn("Payment processed with fallback service (higher fees may apply)");
                     return response.bodyAsJsonObject().getString("message");
                 } else {
-                    throw new RuntimeException("Failed to process payment with fallback service");
+                     String errorDetails = String.format(
+                        "Payment failed - Status: %d, Body: %s",
+                        response.statusCode(),
+                        response.bodyAsString()
+                    );
+                    throw new RuntimeException("Failed to process payment with fallback service " + errorDetails);
                 }
             });
     }

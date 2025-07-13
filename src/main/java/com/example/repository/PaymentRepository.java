@@ -67,7 +67,7 @@ public class PaymentRepository {
           && payment.getAmount() != null
            && payment.getAmount().compareTo(BigDecimal.ZERO) > 0
            ) {
-            Document doc = new Document("correlationId", payment.getCorrelationId())
+            Document doc = new Document("correlationId", payment.getCorrelationId().toString())
                 .append("amount", payment.getAmount())
                 .append("requestedAt", payment.getRequestedAt())       
                 .append("type", payment.getType());

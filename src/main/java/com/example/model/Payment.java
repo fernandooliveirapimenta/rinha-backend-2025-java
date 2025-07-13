@@ -2,9 +2,10 @@ package com.example.model;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 public class Payment {
-    private String correlationId;
+    private UUID correlationId;
     private BigDecimal amount;
     private Instant requestedAt;
     private int type = 1; //1 default, 2 fallback
@@ -19,13 +20,12 @@ public class Payment {
     public void setType(int type) {
         this.type = type;
     }
-    public String getCorrelationId() {
+    public UUID getCorrelationId() {
         return correlationId;
     }
-
-    public void setCorrelationId(String correlationId) {
+    public void setCorrelationId(UUID correlationId) {
         this.correlationId = correlationId;
-    }
+    }   
 
     public BigDecimal getAmount() {
         return amount;
