@@ -22,7 +22,7 @@ import java.time.Instant;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.UUID;
 import java.time.format.DateTimeParseException;
 import static com.mongodb.client.model.Aggregates.*;
 import static com.mongodb.client.model.Filters.*;
@@ -82,7 +82,7 @@ public class PaymentRepository {
         List<Payment> payments = new ArrayList<>();
         for (Document doc : collection.find()) {
             Payment payment = new Payment();
-            payment.setCorrelationId(doc.getString("correlationId"));
+            payment.setCorrelationId(UUID.fromString(doc.getString("correlationId")));
             Decimal128 decimalValue = doc.get("amount", Decimal128.class);
             payment.setAmount(decimalValue != null ? decimalValue.bigDecimalValue() : BigDecimal.ZERO);
             payment.setRequestedAt(doc.getDate("requestedAt").toInstant());
