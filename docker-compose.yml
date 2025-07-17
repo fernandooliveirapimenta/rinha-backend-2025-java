@@ -53,6 +53,9 @@ services:
     image: mongo:latest
     ports:
       - "27017:27017"
+    environment:
+      MONGO_MAX_CONNS: 500
+      MONGO_MAX_CONCURRENT_OPS: 1000
     networks:
       - backend
     volumes:

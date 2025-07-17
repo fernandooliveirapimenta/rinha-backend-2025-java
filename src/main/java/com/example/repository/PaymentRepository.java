@@ -2,8 +2,8 @@ package com.example.repository;
 
 import com.example.model.Payment;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
 
@@ -12,6 +12,8 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
+
+import io.quarkus.runtime.StartupEvent;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -41,8 +43,8 @@ public class PaymentRepository {
 
     private MongoCollection<Document> collection;
 
-    @PostConstruct
-    void inicializarMongo() {
+    
+    public void inicializarMongo(@Observes StartupEvent event) {
         this.database = mongoClient.getDatabase(DATABASE_NAME);
         this.collection = database.getCollection(COLLECTION_NAME);
 
@@ -161,5 +163,10 @@ public class PaymentRepository {
         }
     }
 
+    public void deleteAllPayments() {
+        MongoDatabase database = mongoClient.getDatabase(DATABASE_NAME);
+        MongoCollection<Document> collection = database.getCollection(COLLECTION_NAME);
+        collection.deleteMany(new Document());
+    }
 
 }
