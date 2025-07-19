@@ -4,6 +4,7 @@ import com.example.model.Payment;
 import com.example.repository.PaymentProcessorHttpClient;
 import com.example.repository.PaymentRepository;
 import io.smallrye.mutiny.Uni;
+import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
@@ -18,6 +19,9 @@ public class PaymentsResource {
     @Inject
     PaymentProcessorHttpClient paymentProcessorHttpClient;
 
+    @Inject
+    EventBus eventBus;
+
     @POST
     public Uni<Response> createPayment(Payment payment) {
         if (payment.getCorrelationId() == null
@@ -28,11 +32,15 @@ public class PaymentsResource {
                     .build());
         }
 
-        return paymentProcessorHttpClient.processPayment(payment)
-            .onFailure().invoke(throwable -> {
-                System.err.println("Failed to process payment: " + throwable.getMessage());
-            })
-            .flatMap(result -> paymentRepository.save(payment))
-            .replaceWith(Response.ok().build());
+        return Uni.createFrom().voidItem()
+        .invoke(() -> eventBus.publish("process-payment", payment))
+        .replaceWith(Response.accepted().build());
+        
+        // return paymentProcessorHttpClient.processPayment(payment)
+        //     .onFailure().invoke(throwable -> {
+        //         System.err.println("Failed to process payment: " + throwable.getMessage());
+        //     })
+        //     .flatMap(result -> paymentRepository.save(payment))
+        //     .replaceWith(Response.ok().build());
     }
 }

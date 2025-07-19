@@ -31,10 +31,10 @@ public class PaymentProcessorHttpClient {
     private WebClient primaryClient;
     private WebClient fallbackClient;
 
-    private final AtomicBoolean primaryHealthy = new AtomicBoolean(true);
-    private final AtomicBoolean fallbackHealthy = new AtomicBoolean(true);
-    private final AtomicLong primaryMinResponseTime = new AtomicLong(3000); // default 300ms
-    private final AtomicLong fallbackMinResponseTime = new AtomicLong(3000); // default 300ms
+    public final AtomicBoolean primaryHealthy = new AtomicBoolean(true);
+    public final AtomicBoolean fallbackHealthy = new AtomicBoolean(true);
+    public final AtomicLong primaryMinResponseTime = new AtomicLong(3000); // default 300ms
+    public final AtomicLong fallbackMinResponseTime = new AtomicLong(3000); // default 300ms
 
     @ConfigProperty(name = "payment-processor-default") 
     String PRIMARY_SERVICE_URL;
@@ -45,8 +45,7 @@ public class PaymentProcessorHttpClient {
 
     // Configurações
     private static final int BASE_PAYMENT_TIMEOUT = 10; // 10 segundos
-    private static final long HEALTH_CHECK_INTERVAL = 5000; // 5 segundos
-    private static final double TIMEOUT_MULTIPLIER = 8.0; // Multiplicador do minResponseTime
+    private static final long HEALTH_CHECK_INTERVAL = 5100; // 5 segundos
 
     @PostConstruct
     void initialize() {
@@ -66,6 +65,8 @@ public class PaymentProcessorHttpClient {
 
         startHealthChecks();
     }
+
+   
 
     private String[] extracted(String url) {
         return url.replace("http://", "").split(":");
@@ -89,10 +90,10 @@ public class PaymentProcessorHttpClient {
                         JsonObject body = response.bodyAsJsonObject();
                         healthFlag.set(!body.getBoolean("failing", true));
                         long newMinTime = body.getLong("minResponseTime", 100L);
-                        minResponseTime.set(Math.max(newMinTime, 300L)); // Garante mínimo de 300ms
-                        LOG.infof("Updated minResponseTime for %s: %dms", baseUrl, newMinTime);
+                        minResponseTime.set(newMinTime); 
+                        // LOG.infof("Updated minResponseTime for %s: %dms", baseUrl, newMinTime);
                     } else {
-                        LOG.warnf("Health check for %s returned status %d", 
+                        LOG.warnf("H c for %s status %d", 
                                  baseUrl, response.statusCode());
                     }
                 },
@@ -105,20 +106,10 @@ public class PaymentProcessorHttpClient {
 
     @Fallback(fallbackMethod = "processPaymentWithFallback")
     public Uni<String> processPayment(Payment request) {
-        if (!primaryHealthy.get()) {
-            throw new RuntimeException("Primary service is unhealthy");
-        }
 
-        // Calcula timeout dinâmico: minResponseTime * multiplicador (com mínimo de 500ms e máximo de 5s)
-        long dynamicTimeout = Math.min(
-            Math.max(primaryMinResponseTime.get() * (long)TIMEOUT_MULTIPLIER, 500L),
-            5000L
-        );
-
-        LOG.debugf("Using dynamic timeout for primary service: %dms", dynamicTimeout);
+        // LOG.debugf("Using dynamic timeout for primary service: %dms", dynamicTimeout);
 
         return primaryClient.post(PAYMENTS_ENDPOINT)
-            .timeout(Duration.ofMillis(dynamicTimeout).toMillis())
             .sendJson(request)
             .onItem().transform(response -> {
                 if (response.statusCode() == 200) {
@@ -136,25 +127,17 @@ public class PaymentProcessorHttpClient {
     }
 
     public Uni<String> processPaymentWithFallback(Payment request) {
-        if (!fallbackHealthy.get()) {
-            throw new RuntimeException("Fallback service is also unhealthy");
-        }
 
-        // Calcula timeout dinâmico para fallback
-        long dynamicTimeout = Math.min(
-            Math.max(fallbackMinResponseTime.get() * (long)TIMEOUT_MULTIPLIER, 500L),
-            5000L
-        );
 
-        LOG.debugf("Using dynamic timeout for fallback service: %dms", dynamicTimeout);
+
+        // LOG.debugf("Using dynamic timeout for fallback service: %dms", dynamicTimeout);
 
         return fallbackClient.post(PAYMENTS_ENDPOINT)
-            .timeout(Duration.ofMillis(dynamicTimeout).toMillis())
             .sendJson(request)
             .onItem().transform(response -> {
                 if (response.statusCode() == 200) {
                     request.setType(2);
-                    LOG.warn("Payment processed with fallback service (higher fees may apply)");
+                    // LOG.warn("Payment processed with fallback service (higher fees may apply)");
                     return response.bodyAsJsonObject().getString("message");
                 } else {
                      String errorDetails = String.format(

@@ -1,18 +1,21 @@
 package com.example.repository;
 
 import com.example.model.Payment;
+
+import jakarta.annotation.Priority;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
+import jakarta.interceptor.Interceptor;
 import io.quarkus.mongodb.reactive.ReactiveMongoClient;
 import io.quarkus.mongodb.reactive.ReactiveMongoCollection;
 import io.quarkus.mongodb.reactive.ReactiveMongoDatabase;
+import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
 import org.bson.Document;
 import org.bson.types.Decimal128;
 import io.smallrye.mutiny.Uni;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +34,8 @@ public class PaymentRepository {
     private ReactiveMongoDatabase database;
     private ReactiveMongoCollection<Document> collection;
 
-    void inicializarMongo(@Observes StartupEvent event) {
+  
+    public void inicializarMongo(@Observes StartupEvent event) {
         this.database = mongoClient.getDatabase(DATABASE_NAME);
         this.collection = database.getCollection(COLLECTION_NAME);
 
