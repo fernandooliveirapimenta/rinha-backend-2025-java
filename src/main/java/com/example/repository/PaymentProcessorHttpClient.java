@@ -16,7 +16,6 @@ import org.jboss.logging.Logger;
 
 import com.example.model.Payment;
 
-import java.time.Duration;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
