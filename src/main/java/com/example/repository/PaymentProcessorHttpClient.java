@@ -45,7 +45,7 @@ public class PaymentProcessorHttpClient {
 
     // Configurações
     private static final int BASE_PAYMENT_TIMEOUT = 10; // 10 segundos
-    private static final long HEALTH_CHECK_INTERVAL = 5100; // 5 segundos
+    private static final long HEALTH_CHECK_INTERVAL = 5000; // 5 segundos
     private static final double TIMEOUT_MULTIPLIER = 8.0; // Multiplicador do minResponseTime
 
     @PostConstruct

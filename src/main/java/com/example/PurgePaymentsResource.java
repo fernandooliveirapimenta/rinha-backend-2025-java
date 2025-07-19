@@ -5,6 +5,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
+import io.smallrye.mutiny.Uni;
 
 @Path("/purge-payments")
 public class PurgePaymentsResource {
@@ -13,8 +14,8 @@ public class PurgePaymentsResource {
     PaymentRepository paymentRepository;
 
     @POST
-    public Response purgeAllPayments() {
-        paymentRepository.deleteAllPayments();
-        return Response.ok().build();
+    public Uni<Response> purgeAllPayments() {
+        return paymentRepository.deleteAllPayments()
+            .replaceWith(Response.ok().build());
     }
 }

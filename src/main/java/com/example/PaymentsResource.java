@@ -1,16 +1,13 @@
 package com.example;
 
-import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.Response;
-import java.util.List;
-import java.math.BigDecimal;
-import java.time.Duration;
-
-
 import com.example.model.Payment;
 import com.example.repository.PaymentProcessorHttpClient;
 import com.example.repository.PaymentRepository;
+import io.smallrye.mutiny.Uni;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Response;
+import java.math.BigDecimal;
 
 @Path("/payments")
 public class PaymentsResource {
@@ -22,30 +19,20 @@ public class PaymentsResource {
     PaymentProcessorHttpClient paymentProcessorHttpClient;
 
     @POST
-    public Response createPayment(Payment payment) {
-        if(payment.getCorrelationId() == null 
-          && payment.getAmount() != null
-          && payment.getAmount().compareTo(BigDecimal.ZERO) <= 0
-           ) {
-            return Response.status(Response.Status.BAD_REQUEST)
+    public Uni<Response> createPayment(Payment payment) {
+        if (payment.getCorrelationId() == null
+                || payment.getAmount() == null
+                || payment.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+            return Uni.createFrom().item(Response.status(Response.Status.BAD_REQUEST)
                     .entity("Correlation ID is required and amount must be greater than zero.")
-                    .build();
-            
-           }
-        
-        paymentProcessorHttpClient.processPayment(payment)
-                .onFailure().invoke(throwable -> {
-                    // Log the error or handle it as needed
-                    System.err.println("Failed to process payment: " + throwable.getMessage());
-                })
-                .await().atMost(Duration.ofSeconds(10));
-        paymentRepository.save(payment);
+                    .build());
+        }
 
-        return Response.ok().build();
-    }
-
-    @GET
-    public List<Payment> listPayments() {
-        return paymentRepository.listAll();
+        return paymentProcessorHttpClient.processPayment(payment)
+            .onFailure().invoke(throwable -> {
+                System.err.println("Failed to process payment: " + throwable.getMessage());
+            })
+            .flatMap(result -> paymentRepository.save(payment))
+            .replaceWith(Response.ok().build());
     }
 }
