@@ -16,6 +16,7 @@ import io.smallrye.mutiny.Uni;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.time.format.DateTimeParseException;
 
 
@@ -50,6 +51,17 @@ public class PaymentRepository {
                 .append("requestedAt", payment.getRequestedAt())
                 .append("type", payment.getType());
         return collection.insertOne(doc).replaceWithVoid();
+    
+    }
+
+     public Uni<Void> saveMany(List<Payment> payments) {
+        List<Document> docs = payments.stream()
+                .map(payment -> new Document("correlationId", payment.getCorrelationId().toString())
+                        .append("amount", payment.getAmount())
+                        .append("requestedAt", payment.getRequestedAt())
+                        .append("type", payment.getType()))
+                .collect(Collectors.toList());
+        return collection.insertMany(docs).replaceWithVoid();
     
     }
 

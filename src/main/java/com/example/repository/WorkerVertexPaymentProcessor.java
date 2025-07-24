@@ -1,15 +1,28 @@
 package com.example.repository;
 
+import java.time.Duration;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.jboss.logging.Logger;
+
+
 import com.example.model.Payment;
 
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.vertx.ConsumeEvent;
+import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class WorkerVertexPaymentProcessor {
+
+    private static final Logger LOG = Logger.getLogger(WorkerVertexPaymentProcessor.class);
+
 
     @Inject
     PaymentRepository paymentRepository;
@@ -22,7 +35,7 @@ public class WorkerVertexPaymentProcessor {
 
     @ConsumeEvent(value = "process-payment", blocking = false)
     public Uni<Void> processPayment(Payment payment) {
-
+    //   LOG.infof("processando correlationId: %s", payment.getCorrelationId());
         if (todosIndisponiveis()) {
             eventBus.publish("process-payment", payment);
             return Uni.createFrom().voidItem();
