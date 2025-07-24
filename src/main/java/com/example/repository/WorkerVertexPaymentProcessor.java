@@ -22,31 +22,61 @@ public class WorkerVertexPaymentProcessor {
 
     @ConsumeEvent(value = "process-payment", blocking = false)
     public Uni<Void> processPayment(Payment payment) {
-    //se os dois estiverem indisponiveis envia novamente para fila
-      if(!paymentProcessorHttpClient.primaryHealthy.get() && !paymentProcessorHttpClient.fallbackHealthy.get()) {
-        eventBus.publish("process-payment", payment);
-        return Uni.createFrom().voidItem();
-      }
 
-      //se defaul estiver indisponivel e fallback disponivel envia para fallback
-      if(!paymentProcessorHttpClient.primaryHealthy.get() 
-          && paymentProcessorHttpClient.fallbackHealthy.get()) {
-        return paymentProcessorHttpClient.processPaymentWithFallback(payment)
-            .onFailure().invoke(throwable -> {
-                eventBus.publish("process-payment", payment);
-            })
-            .flatMap(result -> paymentRepository.save(payment))
-            .replaceWithVoid();
+        if (todosIndisponiveis()) {
+            eventBus.publish("process-payment", payment);
+            return Uni.createFrom().voidItem();
+        } else if (primaryDisponivelEFallbackIndisponivel()) {
+            return paymentProcessorHttpClient.processPayment(payment)
+                    .onFailure().invoke(throwable -> {
+                        eventBus.publish("process-payment", payment);
+                    })
+                    .flatMap(result -> paymentRepository.save(payment))
+                    .replaceWithVoid();
+
+        } else if (primaryIndisponivelEFallbackDisponivel()) {
+            return paymentProcessorHttpClient.processPaymentWithFallback(payment)
+                    .onFailure().invoke(throwable -> {
+                        eventBus.publish("process-payment", payment);
+                    })
+                    .flatMap(result -> paymentRepository.save(payment))
+                    .replaceWithVoid();
+        } else {
+            //ambos disponiveis
+            //latencia do primary é pelo menos 40% maior que a do fallback
+         if(paymentProcessorHttpClient.primaryMinResponseTime.get() 
+             >= paymentProcessorHttpClient.fallbackMinResponseTime.get() 
+                 + 0.4 * paymentProcessorHttpClient.fallbackMinResponseTime.get()) {
+            return paymentProcessorHttpClient.processPaymentWithFallback(payment)
+                    .onFailure().invoke(throwable -> {
+                        eventBus.publish("process-payment", payment);
+                    })
+                    .flatMap(result -> paymentRepository.save(payment))
+                    .replaceWithVoid(); 
+        } else {
+            //primary esta com latencia aceitavel
+            return paymentProcessorHttpClient.processPayment(payment)
+                .onFailure().invoke(throwable -> {
+                    eventBus.publish("process-payment", payment);
+                })
+                .flatMap(result -> paymentRepository.save(payment))
+                .replaceWithVoid();
         }
+    }
+        
+    }
 
-        //default disponivel porem timout muito alto
-        return paymentProcessorHttpClient.processPayment(payment)
-            .onFailure().invoke(throwable -> {
-                eventBus.publish("process-payment", payment);
-            })
-            .flatMap(result -> paymentRepository.save(payment))
-            .replaceWithVoid();
-        // return Uni.createFrom().voidItem(); // Simula um processamento bem-sucedido
+    private boolean primaryDisponivelEFallbackIndisponivel() {
+        return paymentProcessorHttpClient.primaryHealthy.get() && !paymentProcessorHttpClient.fallbackHealthy.get();
+    }
+
+    private boolean primaryIndisponivelEFallbackDisponivel() {
+        return !paymentProcessorHttpClient.primaryHealthy.get()
+                && paymentProcessorHttpClient.fallbackHealthy.get();
+    }
+
+    private boolean todosIndisponiveis() {
+        return !paymentProcessorHttpClient.primaryHealthy.get() && !paymentProcessorHttpClient.fallbackHealthy.get();
     }
 
 }
