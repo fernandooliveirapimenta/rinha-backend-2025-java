@@ -62,7 +62,7 @@ public class PaymentProcessorHttpClient {
                 .setConnectTimeout(1000)
                 .setIdleTimeout(BASE_PAYMENT_TIMEOUT));
 
-        startHealthChecks();
+        // startHealthChecks();
     }
 
    
@@ -103,48 +103,29 @@ public class PaymentProcessorHttpClient {
             );
     }
 
-    @Fallback(fallbackMethod = "processPaymentWithFallback")
-    public Uni<String> processPayment(Payment request) {
-
-        // LOG.debugf("Using dynamic timeout for primary service: %dms", dynamicTimeout);
+    // @Fallback(fallbackMethod = "processPaymentWithFallback")
+    public Uni<Void> processPayment(Payment request) {
 
         return primaryClient.post(PAYMENTS_ENDPOINT)
             .sendJson(request)
             .onItem().transform(response -> {
-                if (response.statusCode() == 200) {
-                    return response.bodyAsJsonObject().getString("message");
+                if(response.statusCode() > 300 ){
+                    throw new RuntimeException("Failed to process payment with primary service ");
                 } else {
-                    String errorDetails = String.format(
-                        "Payment failed - Status: %d, Body: %s",
-                        response.statusCode(),
-                        response.bodyAsString()
-                    );
-            
-                    throw new RuntimeException("Failed to process payment with primary service " + errorDetails);
+                  return null;
                 }
             });
     }
 
-    public Uni<String> processPaymentWithFallback(Payment request) {
-
-
-
-        // LOG.debugf("Using dynamic timeout for fallback service: %dms", dynamicTimeout);
+    public Uni<Void> processPaymentWithFallback(Payment request) {
 
         return fallbackClient.post(PAYMENTS_ENDPOINT)
             .sendJson(request)
             .onItem().transform(response -> {
-                if (response.statusCode() == 200) {
-                    request.setType(2);
-                    // LOG.warn("Payment processed with fallback service (higher fees may apply)");
-                    return response.bodyAsJsonObject().getString("message");
+                if(response.statusCode() > 300 ){
+                    throw new RuntimeException("Failed to process payment with fallback service ");
                 } else {
-                     String errorDetails = String.format(
-                        "Payment failed - Status: %d, Body: %s",
-                        response.statusCode(),
-                        response.bodyAsString()
-                    );
-                    throw new RuntimeException("Failed to process payment with fallback service " + errorDetails);
+                  return null;
                 }
             });
     }
