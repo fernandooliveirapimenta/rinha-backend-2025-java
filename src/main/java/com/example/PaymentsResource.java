@@ -8,7 +8,6 @@ import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
-import java.math.BigDecimal;
 
 @Path("/payments")
 public class PaymentsResource {

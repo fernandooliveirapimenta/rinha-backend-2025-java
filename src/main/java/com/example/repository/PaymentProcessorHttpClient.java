@@ -2,7 +2,7 @@ package com.example.repository;
 
 
 import io.smallrye.mutiny.Uni;
-import io.vertx.core.json.JsonObject;
+// import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
@@ -11,8 +11,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.faulttolerance.*;
-import org.jboss.logging.Logger;
+// import org.jboss.logging.Logger;
 
 import com.example.model.Payment;
 
@@ -22,7 +21,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @ApplicationScoped
 public class PaymentProcessorHttpClient {
 
-    private static final Logger LOG = Logger.getLogger(PaymentProcessorHttpClient.class);
+    // private static final Logger LOG = Logger.getLogger(PaymentProcessorHttpClient.class);
 
     @Inject
     Vertx vertx;
@@ -40,11 +39,11 @@ public class PaymentProcessorHttpClient {
     @ConfigProperty(name = "payment-processor-fallback") 
     String FALLBACK_SERVICE_URL;
     private static final String PAYMENTS_ENDPOINT = "/payments";
-    private static final String HEALTH_ENDPOINT = "/payments/service-health";
+    // private static final String HEALTH_ENDPOINT = "/payments/service-health";
 
     // Configurações
     private static final int BASE_PAYMENT_TIMEOUT = 10; // 10 segundos
-    private static final long HEALTH_CHECK_INTERVAL = 5100; // 5 segundos
+    // private static final long HEALTH_CHECK_INTERVAL = 5100; // 5 segundos
 
     @PostConstruct
     void initialize() {
@@ -71,37 +70,37 @@ public class PaymentProcessorHttpClient {
         return url.replace("http://", "").split(":");
     }
 
-    private void startHealthChecks() {
-        vertx.setPeriodic(HEALTH_CHECK_INTERVAL, id -> {
-            checkServiceHealth(primaryClient, PRIMARY_SERVICE_URL, primaryHealthy, primaryMinResponseTime);
-            checkServiceHealth(fallbackClient, FALLBACK_SERVICE_URL, fallbackHealthy, fallbackMinResponseTime);
-        });
-    }
+    // private void startHealthChecks() {
+    //     vertx.setPeriodic(HEALTH_CHECK_INTERVAL, id -> {
+    //         checkServiceHealth(primaryClient, PRIMARY_SERVICE_URL, primaryHealthy, primaryMinResponseTime);
+    //         checkServiceHealth(fallbackClient, FALLBACK_SERVICE_URL, fallbackHealthy, fallbackMinResponseTime);
+    //     });
+    // }
 
-    private void checkServiceHealth(WebClient client, String baseUrl, 
-                                  AtomicBoolean healthFlag, AtomicLong minResponseTime) {
-        client.get(HEALTH_ENDPOINT)
-            .send()
-            .subscribe()
-            .with(
-                response -> {
-                    if (response.statusCode() == 200) {
-                        JsonObject body = response.bodyAsJsonObject();
-                        healthFlag.set(!body.getBoolean("failing", true));
-                        long newMinTime = body.getLong("minResponseTime", 100L);
-                        minResponseTime.set(newMinTime); 
-                        // LOG.infof("Updated minResponseTime for %s: %dms", baseUrl, newMinTime);
-                    } else {
-                        LOG.warnf("H c for %s status %d", 
-                                 baseUrl, response.statusCode());
-                    }
-                },
-                failure -> {
-                    LOG.errorf("Health check failed for %s: %s", baseUrl, failure.getMessage());
-                    healthFlag.set(false);
-                }
-            );
-    }
+    // private void checkServiceHealth(WebClient client, String baseUrl, 
+    //                               AtomicBoolean healthFlag, AtomicLong minResponseTime) {
+    //     client.get(HEALTH_ENDPOINT)
+    //         .send()
+    //         .subscribe()
+    //         .with(
+    //             response -> {
+    //                 if (response.statusCode() == 200) {
+    //                     JsonObject body = response.bodyAsJsonObject();
+    //                     healthFlag.set(!body.getBoolean("failing", true));
+    //                     long newMinTime = body.getLong("minResponseTime", 100L);
+    //                     minResponseTime.set(newMinTime); 
+    //                     // LOG.infof("Updated minResponseTime for %s: %dms", baseUrl, newMinTime);
+    //                 } else {
+    //                     LOG.warnf("H c for %s status %d", 
+    //                              baseUrl, response.statusCode());
+    //                 }
+    //             },
+    //             failure -> {
+    //                 LOG.errorf("Health check failed for %s: %s", baseUrl, failure.getMessage());
+    //                 healthFlag.set(false);
+    //             }
+    //         );
+    // }
 
     // @Fallback(fallbackMethod = "processPaymentWithFallback")
     public Uni<Void> processPayment(Payment request) {
