@@ -44,22 +44,25 @@ public class PaymentRepository {
         ).subscribe().with(x -> {});
     }
 
-    public Uni<Void> save(Payment payment) {
+    // public Uni<Void> save(Payment payment) {
       
-        Document doc = new Document("correlationId", payment.getCorrelationId().toString())
-                .append("amount", payment.getAmount())
-                .append("requestedAt", payment.getRequestedAt())
-                .append("type", payment.getType());
-        return collection.insertOne(doc).replaceWithVoid();
+    //     Document doc = new Document("correlationId", payment.getCorrelationId().toString())
+    //             .append("amount", payment.getAmount())
+    //             .append("requestedAt", payment.getRequestedAt())
+    //             .append("type", payment.getType());
+    //     return collection.insertOne(doc).replaceWithVoid();
     
-    }
+    // }
 
      public Uni<Void> saveMany(List<Payment> payments) {
+
         List<Document> docs = payments.stream()
                 .map(payment -> new Document("correlationId", payment.getCorrelationId().toString())
                         .append("amount", payment.getAmount())
                         .append("requestedAt", payment.getRequestedAt())
-                        .append("type", payment.getType()))
+                        // .append("type", payment.getType())
+                        .append("type", 1))
+
                 .collect(Collectors.toList());
         return collection.insertMany(docs).replaceWithVoid();
     

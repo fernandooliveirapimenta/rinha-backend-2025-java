@@ -5,6 +5,7 @@ import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,14 +35,14 @@ public class Warmup {
         Payment payment = new Payment();
         payment.setCorrelationId(UUID.randomUUID());
         payment.setAmount(new java.math.BigDecimal("1.00"));
-        payment.setType(1);
+        // payment.setType(1);
 
         // Cria uma lista de Unis para salvar os pagamentos
         List<Uni<Void>> saveOperations = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 5; i++) {
             saveOperations.add(
-                paymentRepository.save(payment)
-                    .invoke(() -> LOG.info("Payment repository warmed up successfully"))
+                paymentRepository.saveMany(Arrays.asList(payment))
+                    .invoke(() -> {})
                     .onFailure().invoke(failure -> LOG.error("Failed to warm up payment repository", failure))
             );
         }

@@ -8,18 +8,18 @@ public class Payment {
     private UUID correlationId;
     private BigDecimal amount;
     private Instant requestedAt;
-    private int type = 1; //1 default, 2 fallback
+   // private int type = 1; //1 default, 2 fallback
 
     public Payment() {
         requestedAt = Instant.now();
     }
 
-    public int getType() {
-        return type;
-    }
-    public void setType(int type) {
-        this.type = type;
-    }
+    // public int getType() {
+    //     return type;
+    // }
+    // public void setType(int type) {
+    //     this.type = type;
+    // }
     public UUID getCorrelationId() {
         return correlationId;
     }
