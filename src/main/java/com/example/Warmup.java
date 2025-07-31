@@ -49,7 +49,7 @@ public class Warmup {
 
         // Combina todas as operações de salvamento e executa a purga após a conclusão
         Uni.combine().all().unis(saveOperations)
-            .combinedWith(ignored -> null) // Ignora os resultados individuais
+            .with(ignored -> null) // Ignora os resultados individuais
             .flatMap(ignored -> {
                 // Após salvar os pagamentos, aquece o resumo
                 return paymentSummaryResource.getPaymentSummary("2020-07-10T12:34:56.000Z", "2026-08-10T12:35:56.000Z")
