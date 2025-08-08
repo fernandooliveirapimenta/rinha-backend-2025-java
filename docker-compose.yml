@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   api01: &api
-    image: rinha-backen-2025-java:latest
+    image: fernando107/rinha-backen-2025-java:9857510
     build:
       context: .
       #dockerfile: Dockerfile
