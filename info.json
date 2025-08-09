@@ -6,5 +6,7 @@
   "source-code-repo": "https://github.com/fernandooliveirapimenta/rinha-backend-2025-java",
   "langs": ["java"],
   "storages": ["mongodb"],
-  "load-balancers": ["nginx"]
+  "messaging": ["vertx"],
+  "load-balancers": ["nginx"],
+  "other-technologies": ["quarkus"]
 }
