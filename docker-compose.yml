@@ -16,6 +16,7 @@ services:
       # - QUARKUS_MONGODB_CONNECTION_STRING=mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@documentdb:27017/admin
       - QUARKUS_MONGODB_CONNECTION_STRING=mongodb://documentdb:27017/admin
       - JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75 -XX:+UseSerialGC
+      - QUARKUS_VERTX_EVENT_LOOPS_POOL_SIZE=3
 
     depends_on:
       - documentdb
