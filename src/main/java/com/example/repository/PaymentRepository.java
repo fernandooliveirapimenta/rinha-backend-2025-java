@@ -69,6 +69,14 @@ public class PaymentRepository {
     }
 
     public Uni<Document> getPaymentSummary(String fromDate, String toDate) {
+        if(fromDate == null || fromDate.isBlank()) {
+            // Se não for passado, assume 1º de janeiro de 2023
+           fromDate= "2020-07-12T12:34:56.000Z";
+        }
+          if(toDate == null || toDate.isBlank()) {
+           toDate= "2030-07-12T12:34:56.000Z";
+        }
+
         Instant from = parseInstant(fromDate, "'from' é obrigatório");
         Instant to = parseInstant(toDate, "'to' é obrigatório");
 
