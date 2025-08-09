@@ -44,15 +44,15 @@ public class PaymentRepository {
         ).subscribe().with(x -> {});
     }
 
-    // public Uni<Void> save(Payment payment) {
+    public Uni<Void> save(Payment payment) {
       
-    //     Document doc = new Document("correlationId", payment.getCorrelationId().toString())
-    //             .append("amount", payment.getAmount())
-    //             .append("requestedAt", payment.getRequestedAt())
-    //             .append("type", payment.getType());
-    //     return collection.insertOne(doc).replaceWithVoid();
+        Document doc = new Document("correlationId", payment.getCorrelationId().toString())
+                .append("amount", payment.getAmount())
+                .append("requestedAt", payment.getRequestedAt())
+                .append("type", 1);
+        return collection.insertOne(doc).replaceWithVoid();
     
-    // }
+    }
 
      public Uni<Void> saveMany(List<Payment> payments) {
 

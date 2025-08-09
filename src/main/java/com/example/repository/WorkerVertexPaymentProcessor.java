@@ -32,11 +32,9 @@ public class WorkerVertexPaymentProcessor {
     @Inject
     Vertx vertx;
 
-    
-
     private final List<Payment> paymentBuffer = new CopyOnWriteArrayList<>();
     // private static final int BATCH_SIZE = 100;
-    private static final long BATCH_INTERVAL_MS = 20;
+    private static final long BATCH_INTERVAL_MS = 12;
 
 
     @PostConstruct
