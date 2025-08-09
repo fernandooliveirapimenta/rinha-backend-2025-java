@@ -11,6 +11,8 @@ import io.quarkus.mongodb.reactive.ReactiveMongoDatabase;
 import io.quarkus.runtime.StartupEvent;
 import org.bson.Document;
 import org.bson.types.Decimal128;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
 import io.smallrye.mutiny.Uni;
 
 import java.time.Instant;
@@ -26,6 +28,9 @@ public class PaymentRepository {
     @Inject
     ReactiveMongoClient mongoClient;
 
+    @ConfigProperty(name = "cria-indice", defaultValue = "0")
+    int criaIndice;
+
     private final String DATABASE_NAME = "paymentsDB";
     private final String COLLECTION_NAME = "payments";
 
@@ -38,10 +43,15 @@ public class PaymentRepository {
         this.collection = database.getCollection(COLLECTION_NAME);
 
         // Índices (executar apenas uma vez, idealmente via migration)
-        collection.createIndex(new Document("correlationId", 1)).subscribe().with(x -> {});
-        collection.createIndex(
-                new Document("type", 1).append("requestedAt", 1)
-        ).subscribe().with(x -> {});
+        
+        if (criaIndice == 1) {
+           System.out.println("indices mongoooooooo");
+           collection.createIndex(new Document("correlationId", 1)).subscribe().with(x -> {});
+           collection.createIndex(
+                    new Document("type", 1).append("requestedAt", 1)
+            ).subscribe().with(x -> {});
+        }
+        
     }
 
     public Uni<Void> save(Payment payment) {
