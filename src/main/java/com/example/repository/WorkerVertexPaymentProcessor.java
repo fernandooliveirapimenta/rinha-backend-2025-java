@@ -43,6 +43,7 @@ public class WorkerVertexPaymentProcessor {
 
     @PostConstruct
     public void initializeBatchProcessor() {
+        System.out.println("Intervaloooooooo " + batchIntervalo + " ms");
         vertx.setPeriodic(batchIntervalo, id -> processBatch());
     }
 
