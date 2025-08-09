@@ -70,29 +70,29 @@ public class PaymentProcessorHttpClient {
         //warmup http
         
 
-        List<Uni<Void>> paymentUnis = new ArrayList<>();
-        for (int i = 0; i <= 3; i++) {
-            Payment payment = new Payment();
-            payment.setAmount(new java.math.BigDecimal("1.00"));
-            payment.setCorrelationId(UUID.randomUUID());
-            paymentUnis.add(processPayment(payment).invoke(() -> {
-                System.out.println("Payment processor warmed up successfully: " + payment.getCorrelationId());
-            }).onFailure().invoke(failure -> {
-                System.out.println("Failed to warm up payment processor: " + failure.getMessage());
-            }));
-        }
+        // List<Uni<Void>> paymentUnis = new ArrayList<>();
+        // for (int i = 0; i <= 3; i++) {
+        //     Payment payment = new Payment();
+        //     payment.setAmount(new java.math.BigDecimal("1.00"));
+        //     payment.setCorrelationId(UUID.randomUUID());
+        //     paymentUnis.add(processPayment(payment).invoke(() -> {
+        //         System.out.println("Payment processor warmed up successfully: " + payment.getCorrelationId());
+        //     }).onFailure().invoke(failure -> {
+        //         System.out.println("Failed to warm up payment processor: " + failure.getMessage());
+        //     }));
+        // }
 
-        Uni.combine().all().unis(paymentUnis)
-            .with(unis -> null) // Combine os resultados das Unis (ou substitua null por lógica específica)
-            .onItem().ignore().andSwitchTo(primaryPurgePayments())
-            .subscribe().with(
-                success -> {
-                    System.out.println("Primary purge payments warmed up successfully.");
-                }, 
-                failure -> {
-                    System.out.println("Failed to warm up primary purge payments: " + failure.getMessage());
-                }
-            );
+        // Uni.combine().all().unis(paymentUnis)
+        //     .with(unis -> null) // Combine os resultados das Unis (ou substitua null por lógica específica)
+        //     .onItem().ignore().andSwitchTo(primaryPurgePayments())
+        //     .subscribe().with(
+        //         success -> {
+        //             System.out.println("Primary purge payments warmed up successfully.");
+        //         }, 
+        //         failure -> {
+        //             System.out.println("Failed to warm up primary purge payments: " + failure.getMessage());
+        //         }
+        //     );
 
         
     }

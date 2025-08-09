@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
 import com.example.model.Payment;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
@@ -35,11 +37,13 @@ public class WorkerVertexPaymentProcessor {
     private final List<Payment> paymentBuffer = new CopyOnWriteArrayList<>();
     // private static final int BATCH_SIZE = 100;
     private static final long BATCH_INTERVAL_MS = 12;
+    @ConfigProperty(name = "batch-intervalo", defaultValue = "12")
+    long batchIntervalo;
 
 
     @PostConstruct
     public void initializeBatchProcessor() {
-        vertx.setPeriodic(BATCH_INTERVAL_MS, id -> processBatch());
+        vertx.setPeriodic(batchIntervalo, id -> processBatch());
     }
 
     private synchronized void addToBatch(Payment payment) {

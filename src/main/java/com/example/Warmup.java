@@ -29,42 +29,42 @@ public class Warmup {
     @Inject
     PaymentSummaryResource paymentSummaryResource;
 
-    void onStart(@Observes StartupEvent ev) {
-        paymentRepository.inicializarMongo(ev);
+    // void onStart(@Observes StartupEvent ev) {
+    //     paymentRepository.inicializarMongo(ev);
 
-        Payment payment = new Payment();
-        payment.setCorrelationId(UUID.randomUUID());
-        payment.setAmount(new java.math.BigDecimal("1.00"));
-        // payment.setType(1);
+    //     Payment payment = new Payment();
+    //     payment.setCorrelationId(UUID.randomUUID());
+    //     payment.setAmount(new java.math.BigDecimal("1.00"));
+    //     // payment.setType(1);
 
-        // Cria uma lista de Unis para salvar os pagamentos
-        List<Uni<Void>> saveOperations = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            saveOperations.add(
-                paymentRepository.saveMany(Arrays.asList(payment))
-                    .invoke(() -> {})
-                    .onFailure().invoke(failure -> LOG.error("Failed to warm up payment repository", failure))
-            );
-        }
+    //     // Cria uma lista de Unis para salvar os pagamentos
+    //     List<Uni<Void>> saveOperations = new ArrayList<>();
+    //     for (int i = 0; i < 5; i++) {
+    //         saveOperations.add(
+    //             paymentRepository.saveMany(Arrays.asList(payment))
+    //                 .invoke(() -> {})
+    //                 .onFailure().invoke(failure -> LOG.error("Failed to warm up payment repository", failure))
+    //         );
+    //     }
 
-        // Combina todas as operações de salvamento e executa a purga após a conclusão
-        Uni.combine().all().unis(saveOperations)
-            .with(ignored -> null) // Ignora os resultados individuais
-            .flatMap(ignored -> {
-                // Após salvar os pagamentos, aquece o resumo
-                return paymentSummaryResource.getPaymentSummary("2020-07-10T12:34:56.000Z", "2026-08-10T12:35:56.000Z")
-                    .invoke(summary -> LOG.info("Payment summary warmed up"))
-                    .onFailure().invoke(failure -> LOG.error("Failed to warm up payment summary", failure));
-            })
-            .flatMap(ignored -> {
-                // Após o resumo, executa a purga
-                return purgePaymentsResource.purgeAllPayments()
-                    .invoke(result -> LOG.info("All payments purged successfully"))
-                    .onFailure().invoke(failure -> LOG.error("Failed to purge payments", failure));
-            })
-            .subscribe().with(
-                ignored -> LOG.info("Warmup process completed successfully"),
-                failure -> LOG.error("Warmup process failed", failure)
-            );
-    }
+    //     // Combina todas as operações de salvamento e executa a purga após a conclusão
+    //     Uni.combine().all().unis(saveOperations)
+    //         .with(ignored -> null) // Ignora os resultados individuais
+    //         .flatMap(ignored -> {
+    //             // Após salvar os pagamentos, aquece o resumo
+    //             return paymentSummaryResource.getPaymentSummary("2020-07-10T12:34:56.000Z", "2026-08-10T12:35:56.000Z")
+    //                 .invoke(summary -> LOG.info("Payment summary warmed up"))
+    //                 .onFailure().invoke(failure -> LOG.error("Failed to warm up payment summary", failure));
+    //         })
+    //         .flatMap(ignored -> {
+    //             // Após o resumo, executa a purga
+    //             return purgePaymentsResource.purgeAllPayments()
+    //                 .invoke(result -> LOG.info("All payments purged successfully"))
+    //                 .onFailure().invoke(failure -> LOG.error("Failed to purge payments", failure));
+    //         })
+    //         .subscribe().with(
+    //             ignored -> LOG.info("Warmup process completed successfully"),
+    //             failure -> LOG.error("Warmup process failed", failure)
+    //         );
+    // }
 }

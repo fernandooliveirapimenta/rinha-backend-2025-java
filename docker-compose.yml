@@ -1,7 +1,7 @@
 
 services:
   api01: &api
-    image: fernando107/rinha-backen-2025-java:fc88a63
+    image: fernando107/rinha-backen-2025-java:e9b3aab
     ports:
       - "8080:8080"
     networks:
