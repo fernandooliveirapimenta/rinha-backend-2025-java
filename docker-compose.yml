@@ -1,7 +1,7 @@
 
 services:
   api01: &api
-    image: fernando107/rinha-backen-2025-java:9857510
+    image: fernando107/rinha-backen-2025-java:d6e6f95
     build:
       context: .
       #dockerfile: Dockerfile

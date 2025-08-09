@@ -13,10 +13,9 @@ echo "✅ Build concluído:"
 echo "  - $IMAGE_NAME:$VERSION"
 echo "  - $IMAGE_NAME:latest"
 
-read -p "Deseja fazer push da imagem para Docker Hub? (s/n): " resposta
-if [[ "$resposta" =~ ^[sS]$ ]]; then
-    echo "🔐 Enviando imagens..."
-    docker push $IMAGE_NAME:$VERSION
-    docker push $IMAGE_NAME:latest
-    echo "🎉 Imagens enviadas!"
-fi
+
+echo "🔐 Enviando imagens..."
+docker push $IMAGE_NAME:$VERSION
+docker push $IMAGE_NAME:latest
+echo "🎉 Imagens enviadas!"
+
